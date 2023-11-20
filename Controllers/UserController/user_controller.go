@@ -7,7 +7,6 @@ import (
 	authrequest "finance-tracker-api/Requests/AuthRequest"
 	userresponse "finance-tracker-api/Responses/UserResponse"
 	userservice "finance-tracker-api/Services/UserService"
-	"net/http"
 	"os"
 	"time"
 
@@ -87,11 +86,7 @@ func SignIn(context *gin.Context) {
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
-
-	if err != nil {
-		context.JSON(400, gin.H{
-			"message": "Failed login, email or password is wrong : password wrong",
-		})
+	if helpers.JsonIfErr(err, context, 500) {
 		return
 	}
 
@@ -102,20 +97,25 @@ func SignIn(context *gin.Context) {
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-
-	if err != nil {
-		context.JSON(400, gin.H{
-			"message": "Failed login, email or password is wrong : error make token",
-		})
+	if helpers.JsonIfErr(err, context, 500) {
 		return
 	}
 
-	context.SetSameSite(http.SameSiteNoneMode)
-	context.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
+	accessToken := models.PersonalAccessToken{
+		UserId: user.ID,
+		Token:  tokenString,
+	}
+
+	result := database.DB.Create(&accessToken)
+
+	if helpers.JsonIfErr(result.Error, context, 500) {
+		return
+	}
 
 	context.JSON(200, gin.H{
 		"message": "Success login",
 		"user":    userresponse.UserResponseOne(user),
+		"token":   tokenString,
 	})
 }
 
@@ -125,12 +125,7 @@ func Profile(context *gin.Context) {
 	userModel := models.User{}
 
 	result := database.DB.Where("id = ?", user.ID).First(&userModel)
-	if result.Error != nil {
-		// Handle kesalahan query
-		context.JSON(500, gin.H{
-			"message": "Error fetching user profile",
-			"error":   result.Error,
-		})
+	if helpers.JsonIfErr(result.Error, context, 500) {
 		return
 	}
 

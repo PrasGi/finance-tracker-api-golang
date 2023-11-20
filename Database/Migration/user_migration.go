@@ -14,4 +14,6 @@ func init() {
 func main() {
 	database.DB.Migrator().DropTable(&models.User{})
 	database.DB.AutoMigrate(&models.User{})
+
+	database.DB.AutoMigrate(&models.PersonalAccessToken{})
 }

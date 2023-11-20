@@ -2,6 +2,7 @@ package middleware
 
 import (
 	database "finance-tracker-api/Database"
+	helpers "finance-tracker-api/Helpers"
 	models "finance-tracker-api/Models"
 	"fmt"
 	"net/http"
@@ -15,14 +16,12 @@ import (
 
 func Authentication(c *gin.Context) {
 	// Get
-	tokenString, err := c.Cookie("Authorization")
+	tokenString := c.GetHeader("Authorization")
 	tokenString = strings.TrimSpace(tokenString)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized | Token doesn't exist",
-		})
-		c.Abort()
+	var tokenModel models.PersonalAccessToken
+	checkDB := database.DB.Where("token = ?", tokenString).First(&tokenModel)
+	if helpers.JsonIfErr(checkDB.Error, c, 404) {
 		return
 	}
 
