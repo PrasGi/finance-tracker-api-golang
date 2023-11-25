@@ -16,4 +16,5 @@ func main() {
 	database.DB.AutoMigrate(&models.User{})
 
 	database.DB.AutoMigrate(&models.PersonalAccessToken{})
+	database.DB.AutoMigrate(&models.Category{})
 }

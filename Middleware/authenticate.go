@@ -22,6 +22,7 @@ func Authentication(c *gin.Context) {
 	var tokenModel models.PersonalAccessToken
 	checkDB := database.DB.Where("token = ?", tokenString).First(&tokenModel)
 	if helpers.JsonIfErr(checkDB.Error, c, 404) {
+		c.Abort()
 		return
 	}
 
