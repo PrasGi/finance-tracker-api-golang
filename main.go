@@ -2,6 +2,7 @@ package main
 
 import (
 	categorycontroller "finance-tracker-api/Controllers/CategoryController"
+	financecontroller "finance-tracker-api/Controllers/FinanceController"
 	usercontroller "finance-tracker-api/Controllers/UserController"
 	database "finance-tracker-api/Database"
 	helpers "finance-tracker-api/Helpers"
@@ -36,6 +37,12 @@ func main() {
 		AuthGroup.GET("/categories/:id", categorycontroller.Show)
 		AuthGroup.PUT("/categories/:id", categorycontroller.Update)
 		AuthGroup.DELETE("/categories/:id", categorycontroller.Destroy)
+
+		AuthGroup.GET("/finances", financecontroller.Index)
+		AuthGroup.POST("/finances", financecontroller.Store)
+		AuthGroup.GET("/finances/:id", financecontroller.Show)
+		AuthGroup.PUT("/finances/:id", financecontroller.Update)
+		AuthGroup.DELETE("/finances/:id", financecontroller.Destroy)
 	}
 
 	router.Run(":" + os.Getenv("PORT"))
